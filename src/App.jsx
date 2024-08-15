@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import "./styles.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+/*
+  Instructions:
+    Implement the `useFetch` function. 
+*/
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+function useFetch(url) {
+  const [data, setData] = useState({ body: null, title: null });
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    async function fetchText() {
+      const response = await fetch(url);
+      const resData = await response.json();
+      let error = "";
+      if (!response.ok) {
+        error = new Error("Failed to fetch");
+      }
+      setData(resData);
+      setLoading(false);
+    }
+
+    fetchText();
+  
+  }, [url]);
+
+  return { loading: loading, data: data, error: "" };
 }
 
-export default App
+export default function App() {
+  const postIds = [1, 2, 3, 4, 5, 6, 7, 8];
+  const [index, setIndex] = useState(0);
+
+  let {
+    loading,
+    data: post,
+    error,
+  } = useFetch(`https://jsonplaceholder.typicode.com/posts/${postIds[index]}`);
+
+  const incrementIndex = () => {
+    setIndex((i) => (i === postIds.length - 1 ? i : i + 1));
+    console.log(index)
+  };
+
+  if (loading === true) {
+    return <p>Loading</p>;
+  }
+
+  if (error) {
+    return (
+      <>
+        <p>{error}</p>
+        <button onClick={incrementIndex}>Next Post</button>
+      </>
+    );
+  }
+
+  return (
+    <div className="App">
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+      {error && <p>{error}</p>}
+      {index === postIds.length - 1 ? (
+        <p>No more posts existss ....</p>
+      ) : (
+        <button onClick={incrementIndex} className='button'>Next Post</button>
+      )}
+    </div>
+  );
+}
